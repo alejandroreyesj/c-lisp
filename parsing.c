@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 
   mpca_lang(MPCA_LANG_DEFAULT, "                                               \
       number: /-?[0-9]+/;                           \
-      operator: '+' | '-' | '*' | '/';              \
+      operator: '+' | '-' | '*' | '/' | '%';              \
       expr: <number> | '(' | <operator> <expr>+ ')';\
       lispy: /^/ <operator> <expr>+ /$/;            \
     ",
@@ -46,8 +46,18 @@ int main(int argc, char **argv) {
     char *input = readline("c-lisp> ");
     add_history(input);
 
-    printf("No you're a %s\n", input);
+    mpc_result_t r;
+    if (mpc_parse("<stdin>", input, Lispy, &r)) {
+      mpc_ast_print(r.output);
+      mpc_ast_delete(r.output);
+    } else {
+      mpc_err_print(r.error);
+      mpc_err_delete(r.error);
+    }
+
     free(input);
   }
+
+  mpc_cleanup(4, Number, Operator, Expr, Lispy);
   return 0;
 }
